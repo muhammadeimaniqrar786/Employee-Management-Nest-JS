@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id Int @default(autoincrement()) @id
+  name String
+  username String @unique
+  email String @unique
+  password String
+  address String
+  phone String
+  designation String
+  assignedTasks EmployeeTasks[] @relation("assignedTo")
+  tasksAssigned EmployeeTasks[] @relation("assigner")
+}
+
+model EmployeeTasks {
+  id Int @default(autoincrement()) @id
+  name String
+  start DateTime?
+  end DateTime?
+  assignedTo Employee @relation("assignedTo", fields: [employee_id], references: [id])
+  employee_id Int
+  assigner Employee @relation("assigner", fields: [assigner_id], references: [id])
+  assigner_id Int
+  Gallery TaskGallery[]
+}
+
+model TaskGallery {
+  id Int @default(autoincrement()) @id
+  media String
+  task EmployeeTasks @relation(fields: [task_id], references: [id])
+  task_id Int
+}
