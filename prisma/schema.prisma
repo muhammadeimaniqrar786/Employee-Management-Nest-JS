@@ -10,17 +10,97 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Employee {
+model Roles {
+  id Int @default(autoincrement()) @id
+  name String @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  permissions RoleHasPermissions[]
+  users UserHasRoles[]
+}
+
+model Permissions {
+  id Int @default(autoincrement()) @id
+  name String
+  parent_id Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  roles RoleHasPermissions[]
+}
+
+model RoleHasPermissions {
+  id Int @default(autoincrement()) @id
+  role Roles @relation(fields: [role_id], references: [id])
+  role_id Int
+  permission Permissions @relation(fields: [permission_id], references: [id])
+  permission_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  @@map("role_has_permissions")
+}
+
+model UserHasRoles {
+  id Int @default(autoincrement()) @id
+  user Users @relation(fields: [user_id], references: [id])
+  user_id Int
+  role Roles @relation(fields: [role_id], references: [id])
+  role_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  @@map("user_has_roles")
+}
+
+model Users {
   id Int @default(autoincrement()) @id
   name String
   username String @unique
   email String @unique
   password String
-  address String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  roles UserHasRoles[]
+  employees EmployeesData[]
+  employee EmployeeHasManager[] @relation("employee")
+  manager EmployeeHasManager[] @relation("manager")
+}
+
+model EmployeesData {
+  id Int @default(autoincrement()) @id
+  user Users @relation(fields: [user_id], references: [id])
+  user_id Int
   phone String
+  address String
   designation String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
   assignedTasks EmployeeTasks[] @relation("assignedTo")
   tasksAssigned EmployeeTasks[] @relation("assigner")
+  @@map("employees_data")
+}
+
+model EmployeeHasManager {
+  id Int @default(autoincrement()) @id
+  employee Users @relation("employee", fields: [employee_id], references: [id])
+  employee_id Int
+  manager Users @relation("manager", fields: [manager_id], references: [id])
+  manager_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  @@map("employee_has_manager")
+}
+
+enum EmployeeTasksStatus {
+  inactive
+  pending
+  inprocess
+  completed
 }
 
 model EmployeeTasks {
@@ -28,11 +108,16 @@ model EmployeeTasks {
   name String
   start DateTime?
   end DateTime?
-  assignedTo Employee @relation("assignedTo", fields: [employee_id], references: [id])
+  assignedTo EmployeesData @relation("assignedTo", fields: [employee_id], references: [id])
   employee_id Int
-  assigner Employee @relation("assigner", fields: [assigner_id], references: [id])
+  assigner EmployeesData @relation("assigner", fields: [assigner_id], references: [id])
   assigner_id Int
+  status EmployeeTasksStatus
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
   Gallery TaskGallery[]
+  @@map("employee_tasks")
 }
 
 model TaskGallery {
@@ -40,4 +125,8 @@ model TaskGallery {
   media String
   task EmployeeTasks @relation(fields: [task_id], references: [id])
   task_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  deleted_at DateTime?
+  @@map("task_gallery")
 }
