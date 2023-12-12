@@ -10,89 +10,99 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Roles {
-  id Int @default(autoincrement()) @id
-  name String @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  deleted_at DateTime?
-  permissions RoleHasPermissions[]
-  users UserHasRoles[]
+model Role {
+  id          Int                 @id @default(autoincrement())
+  name        String              @db.VarChar(255)
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @default(now()) @updatedAt
+  deleted_at  DateTime?
+  permissions RoleHasPermission[]
+  users       UserHasRole[]
+
+  @@map("roles")
 }
 
-model Permissions {
-  id Int @default(autoincrement()) @id
-  name String
-  parent_id Int?
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+model Permission {
+  id         Int                 @id @default(autoincrement())
+  name       String              @db.VarChar(255)
+  parent_id  Int?
+  created_at DateTime            @default(now())
+  updated_at DateTime            @default(now()) @updatedAt
   deleted_at DateTime?
-  roles RoleHasPermissions[]
+  roles      RoleHasPermission[]
+
+  @@map("permissions")
 }
 
-model RoleHasPermissions {
-  id Int @default(autoincrement()) @id
-  role Roles @relation(fields: [role_id], references: [id])
-  role_id Int
-  permission Permissions @relation(fields: [permission_id], references: [id])
+model RoleHasPermission {
+  id            Int        @id @default(autoincrement())
+  role          Role       @relation(fields: [role_id], references: [id])
+  role_id       Int
+  permission    Permission @relation(fields: [permission_id], references: [id])
   permission_id Int
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  deleted_at DateTime?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @default(now()) @updatedAt
+  deleted_at    DateTime?
+
   @@map("role_has_permissions")
 }
 
-model UserHasRoles {
-  id Int @default(autoincrement()) @id
-  user Users @relation(fields: [user_id], references: [id])
-  user_id Int
-  role Roles @relation(fields: [role_id], references: [id])
-  role_id Int
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+model UserHasRole {
+  id         Int       @id @default(autoincrement())
+  user       User      @relation(fields: [user_id], references: [id])
+  user_id    Int
+  role       Role      @relation(fields: [role_id], references: [id])
+  role_id    Int
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
   deleted_at DateTime?
+
   @@map("user_has_roles")
 }
 
-model Users {
-  id Int @default(autoincrement()) @id
-  name String
-  username String @unique
-  email String @unique
-  password String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+model User {
+  id         Int                  @id @default(autoincrement())
+  name       String               @db.VarChar(255)
+  username   String               @unique @db.VarChar(255)
+  email      String               @unique @db.VarChar(255)
+  password   String               @db.VarChar(255)
+  created_at DateTime             @default(now())
+  updated_at DateTime             @default(now()) @updatedAt
   deleted_at DateTime?
-  roles UserHasRoles[]
-  employees EmployeesData[]
-  employee EmployeeHasManager[] @relation("employee")
-  manager EmployeeHasManager[] @relation("manager")
+  roles      UserHasRole[]
+  employees  EmployeesData[]
+  employee   EmployeeHasManager[] @relation("employee")
+  manager    EmployeeHasManager[] @relation("manager")
+
+  @@map("users")
 }
 
 model EmployeesData {
-  id Int @default(autoincrement()) @id
-  user Users @relation(fields: [user_id], references: [id])
-  user_id Int
-  phone String
-  address String
-  designation String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  deleted_at DateTime?
-  assignedTasks EmployeeTasks[] @relation("assignedTo")
-  tasksAssigned EmployeeTasks[] @relation("assigner")
+  id            Int            @id @default(autoincrement())
+  user          User           @relation(fields: [user_id], references: [id])
+  user_id       Int
+  phone         String         @db.VarChar(255)
+  address       String         @db.VarChar(255)
+  designation   String         @db.VarChar(255)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @default(now()) @updatedAt
+  deleted_at    DateTime?
+  assignedTasks EmployeeTask[] @relation("assignedTo")
+  tasksAssigned EmployeeTask[] @relation("assigner")
+
   @@map("employees_data")
 }
 
 model EmployeeHasManager {
-  id Int @default(autoincrement()) @id
-  employee Users @relation("employee", fields: [employee_id], references: [id])
+  id          Int       @id @default(autoincrement())
+  employee    User      @relation("employee", fields: [employee_id], references: [id])
   employee_id Int
-  manager Users @relation("manager", fields: [manager_id], references: [id])
-  manager_id Int
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  deleted_at DateTime?
+  manager     User      @relation("manager", fields: [manager_id], references: [id])
+  manager_id  Int
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  deleted_at  DateTime?
+
   @@map("employee_has_manager")
 }
 
@@ -103,30 +113,32 @@ enum EmployeeTasksStatus {
   completed
 }
 
-model EmployeeTasks {
-  id Int @default(autoincrement()) @id
-  name String
-  start DateTime?
-  end DateTime?
-  assignedTo EmployeesData @relation("assignedTo", fields: [employee_id], references: [id])
+model EmployeeTask {
+  id          Int                 @id @default(autoincrement())
+  name        String              @db.VarChar(255)
+  start       DateTime?
+  end         DateTime?
+  assignedTo  EmployeesData       @relation("assignedTo", fields: [employee_id], references: [id])
   employee_id Int
-  assigner EmployeesData @relation("assigner", fields: [assigner_id], references: [id])
+  assigner    EmployeesData       @relation("assigner", fields: [assigner_id], references: [id])
   assigner_id Int
-  status EmployeeTasksStatus
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  deleted_at DateTime?
-  Gallery TaskGallery[]
+  status      EmployeeTasksStatus
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @default(now()) @updatedAt
+  deleted_at  DateTime?
+  Gallery     TaskGallery[]
+
   @@map("employee_tasks")
 }
 
 model TaskGallery {
-  id Int @default(autoincrement()) @id
-  media String
-  task EmployeeTasks @relation(fields: [task_id], references: [id])
-  task_id Int
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  id         Int          @id @default(autoincrement())
+  media      String       @db.VarChar(255)
+  task       EmployeeTask @relation(fields: [task_id], references: [id])
+  task_id    Int
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now()) @updatedAt
   deleted_at DateTime?
+
   @@map("task_gallery")
 }

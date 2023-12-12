@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 export const seedEmployeesData = async (prisma: PrismaService) => {
   const employeesData: Prisma.EmployeesDataCreateManyInput[] = [

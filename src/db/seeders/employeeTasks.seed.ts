@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 export const seedEmployeeTasks = async (prisma: PrismaService) => {
-  const tasks: Prisma.EmployeeTasksCreateManyInput[] = [
+  const tasks: Prisma.EmployeeTaskCreateManyInput[] = [
     {
       name: 'Mobile App Development',
       employee_id: 2,
@@ -19,7 +19,7 @@ export const seedEmployeeTasks = async (prisma: PrismaService) => {
 
   for (const task of tasks) {
     try {
-      await prisma.employeeTasks.create({
+      await prisma.employeeTask.create({
         data: task
       });
 

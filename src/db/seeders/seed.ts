@@ -6,7 +6,7 @@ import { seedUsers } from './users.seed';
 import { seedUserHasRoles } from './userHasRoles.seed';
 import { seedEmployeesData } from './employeesData.seed';
 import { seedEmployeeTasks } from './employeeTasks.seed';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();

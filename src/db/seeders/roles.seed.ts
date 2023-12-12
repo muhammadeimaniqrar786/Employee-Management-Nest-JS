@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 export const seedRoles = async (prisma: PrismaService) => {
-  const roles: Prisma.RolesCreateManyInput[] = [
+  const roles: Prisma.RoleCreateManyInput[] = [
     {
       id: 1,
       name: 'super admin',
@@ -19,7 +19,7 @@ export const seedRoles = async (prisma: PrismaService) => {
 
   for (const role of roles) {
     try {
-      await prisma.roles.create({
+      await prisma.role.create({
         data: role
       });
 
