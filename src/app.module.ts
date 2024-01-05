@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { PrismaService } from './db/prisma/prisma.service';
 import { PrismaModule } from './db/prisma/prisma.module';
 import { TasksModule } from './tasks/tasks.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
 
 @Module({
   imports: [
@@ -18,7 +20,9 @@ import { TasksModule } from './tasks/tasks.module';
     AuthModule,
     UsersModule,
     PrismaModule,
-    TasksModule
+    TasksModule,
+    RolesModule,
+    PermissionsModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
