@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/db/prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class RolesService {
@@ -14,19 +14,54 @@ export class RolesService {
     });
   }
 
-  findAll() {
-    return this.prisma.role.findMany({
+  async findAll() {
+    const roles = await this.prisma.role.findMany({
       where: {
         deleted_at: null
-      }
+      },
+      include: { permissions: { select: { permission: true } } }
+    });
+
+    if (!roles) {
+      return null;
+    }
+
+    return roles.map((role) => {
+      const permissions = role.permissions.map(p => p.permission);
+
+      return {
+        id: role.id,
+        name: role.name,
+        created_at: role.created_at,
+        updated_at: role.updated_at,
+        deleted_at: role.deleted_at,
+        permissions: permissions
+      };
     });
   }
 
-  findOne(id: number) {
-    return this.prisma.role.findUnique({
+  async findOne(id: number) {
+    const role = await this.prisma.role.findUnique({
       where: { id },
-      include: { permissions: true }
+      include: { permissions: { select: { permission: true } } }
     });
+
+    if (!role) {
+      return null;
+    }
+
+    const permissions = role.permissions.map((p) => p.permission);
+
+    const flattenedRole = {
+      id: role.id,
+      name: role.name,
+      created_at: role.created_at,
+      updated_at: role.updated_at,
+      deleted_at: role.deleted_at,
+      permissions: permissions,
+    };
+
+    return flattenedRole;
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto, role: UpdateRoleDto) {
@@ -52,39 +87,43 @@ export class RolesService {
   }
 
   async assignPermissionToRole(roleId: number, permissionIds: number[]): Promise<Role> {
-    
+
     const role = await this.findOne(roleId);
 
     if (!role) {
       throw new NotFoundException(`Could not find role.`);
     }
 
-    // Connecting new permissions:
-    const updatedRole = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          connect: permissionIds.map((id) => ({ id }))
-        }
-      },
-      include: { permissions: true }
-    })
+    // Map the permissionIds to create an array of RoleHasPermissionCreateInput objects
+    const roleHasPermissions: Prisma.RoleHasPermissionCreateManyInput[] = permissionIds.map(permissionId => ({
+      role_id: roleId,
+      permission_id: permissionId,
+    }));
+
+    // Create multiple entries in the RoleHasPermission table
+    this.prisma.roleHasPermission.createMany({
+      data: roleHasPermissions,
+    });
 
     // disconnecting old permissions:
     const oldPermissionIds = role.permissions.map((permission) => permission.id);
     const permissionsToRemove = oldPermissionIds.filter((id) => !permissionIds.includes(id));
 
-    await this.prisma.roleHasPermission.updateMany({
-      where: {
-        role_id: roleId,
-        permission_id: {
-          in: permissionsToRemove
+    if (permissionsToRemove.length > 0) {
+      await this.prisma.roleHasPermission.updateMany({
+        where: {
+          role_id: roleId,
+          permission_id: {
+            in: permissionsToRemove
+          }
+        },
+        data: {
+          deleted_at: new Date(),
         }
-      },
-      data: {
-        deleted_at: new Date(),
-      }
-    });
+      });
+    }
+
+    const updatedRole = await this.findOne(roleId);
 
     return updatedRole;
   }
