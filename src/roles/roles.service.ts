@@ -19,7 +19,7 @@ export class RolesService {
       where: {
         deleted_at: null
       },
-      include: { permissions: { select: { permission: true } } }
+      include: { permissions: { where: { deleted_at: null }, select: { permission: true } } }
     });
 
     if (!roles) {
@@ -43,7 +43,7 @@ export class RolesService {
   async findOne(id: number) {
     const role = await this.prisma.role.findUnique({
       where: { id },
-      include: { permissions: { select: { permission: true } } }
+      include: { permissions: { where: { deleted_at: null }, select: { permission: true } } }
     });
 
     if (!role) {
@@ -94,20 +94,22 @@ export class RolesService {
       throw new NotFoundException(`Could not find role.`);
     }
 
+    const oldPermissionIds = role.permissions.map((permission) => permission.id);
+    const permissionsToRemove = oldPermissionIds.filter((id) => !permissionIds.includes(id));
+    const permissionsToCreate = permissionIds.filter((id) => !oldPermissionIds.includes(id));
+
     // Map the permissionIds to create an array of RoleHasPermissionCreateInput objects
-    const roleHasPermissions: Prisma.RoleHasPermissionCreateManyInput[] = permissionIds.map(permissionId => ({
+    const roleHasPermissions: Prisma.RoleHasPermissionCreateManyInput[] = permissionsToCreate.map(permissionId => ({
       role_id: roleId,
       permission_id: permissionId,
     }));
 
     // Create multiple entries in the RoleHasPermission table
-    this.prisma.roleHasPermission.createMany({
+    await this.prisma.roleHasPermission.createMany({
       data: roleHasPermissions,
     });
 
     // disconnecting old permissions:
-    const oldPermissionIds = role.permissions.map((permission) => permission.id);
-    const permissionsToRemove = oldPermissionIds.filter((id) => !permissionIds.includes(id));
 
     if (permissionsToRemove.length > 0) {
       await this.prisma.roleHasPermission.updateMany({
