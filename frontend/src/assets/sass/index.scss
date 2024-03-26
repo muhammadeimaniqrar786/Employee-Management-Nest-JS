@@ -1,0 +1,30 @@
+@import '~bootstrap/scss/bootstrap';
+
+@import './sidebar';
+
+// Poppins Font-face:
+@font-face {
+    font-family: 'Poppins Regular';
+    src: url(../fonts/poppins/Poppins-Regular.ttf);
+}
+
+@font-face {
+    font-family: 'Poppins SemiBold';
+    src: url(../fonts/poppins/Poppins-SemiBold.ttf);
+}
+
+@font-face {
+    font-family: 'Poppins Bold';
+    src: url(../fonts/poppins/Poppins-Bold.ttf);
+}
+
+* {
+    font-family: 'Poppins Regular';
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}

@@ -1,0 +1,67 @@
+.sidebar {
+    position: absolute;
+    height: 100vh;
+    background: black;
+    width: 230px;
+    padding: 10px;
+    color: white;
+
+    a {
+        color: white;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0px;
+
+        >li {
+            margin-top: 2px;
+
+            &.heading {
+                font-family: 'Poppins SemiBold';
+            }
+
+            &.dropdown {
+
+                >span {
+                    &.title {
+                        cursor: pointer;
+
+                        >.chevron-up {
+                            display: none;
+                        }
+
+                        >.chevron-down {
+                            display: inline-block;
+                            margin-left: 4px;
+                        }
+
+                    }
+
+                    +ul {
+                        padding: 0px 8px;
+                        display: none;
+                    }
+                }
+
+                &.active {
+                    >span {
+                        >.chevron-down {
+                            display: none;
+                        }
+
+                        >.chevron-up {
+                            display: inline-block;
+                            margin-left: 4px;
+                        }
+
+                        +ul {
+                            display: block;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
